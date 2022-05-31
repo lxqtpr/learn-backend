@@ -7,12 +7,15 @@ import User from '../../models/user/entity/user.entity'
 import JwtAccessGuard from '../../core/guards/auth/JwtAccess.guard'
 import JwtRefreshGuard from '../../core/guards/auth/JwtRefresh.guard'
 import { LocalAuthenticationGuard } from '../../core/guards/auth/LocalAuth.guard'
+import { ApiBody, ApiTags } from '@nestjs/swagger'
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('registration')
+    @ApiBody({type: CreateUserDto})
     async registration(@Body() userDto: CreateUserDto, @Req() req: Request) {
         return await this.authService.registration(userDto, req)
     }

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { JwtConfigService } from '../../../configs/auth/jwt/config.service'
+import { Request } from 'express'
 
 @Injectable()
 export class JwtAuthService {
@@ -41,6 +42,13 @@ export class JwtAuthService {
             }
         )
     }
+    public async setTokensWithCookie(id: number, req: Request){
+        const accessTokenCookie = await this.getCookieWithJwtAccessToken(id)
+        const { refreshCookie, refreshToken } = await this.getCookieWithJwtRefreshToken(id)
+        req.res.setHeader('Set-Cookie', [accessTokenCookie, refreshCookie])
+        return refreshToken
+    }
+
     public async decodeConfirmationToken(token: string) {
         try {
             const payload = await this.jwtService.verify(token, { secret: this.jwtConfigService.verificationSecret })

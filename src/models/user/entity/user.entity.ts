@@ -1,6 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import { Exclude } from 'class-transformer'
-import Purchase from '../../purchases/entity/purchases.entity'
 
 @Entity('users')
 export default class User {
@@ -17,12 +16,6 @@ export default class User {
     @Exclude()
     @Column({ nullable: true })
     public refreshToken: string
-
-    @OneToMany(
-        () => Purchase,
-        purchase => purchase.buyer
-    )
-    public purchases: Purchase[]
 
     @Column({ default: false })
     public isEmailConfirmed: boolean

@@ -19,9 +19,9 @@ export class UserService {
             refreshToken: hashToken,
         })
     }
-
+    
     async getUserIfRefreshTokenMatches(refreshToken: string, id: number) {
-        const user = await this.userRepository.findOne({ id })
+        const user = await this.userRepository.findOne({where: { id }})
         const isRefreshTokenMatching = await compare(refreshToken, user.refreshToken)
         if (isRefreshTokenMatching) {
             return user
@@ -30,7 +30,7 @@ export class UserService {
 
     async getAuthUser(email: string, plainTextPassword: string) {
         try {
-            const user = await this.userRepository.findOne({ email })
+            const user = await this.userRepository.findOne({where: { email }})
             await this.verifyPassword(plainTextPassword, user.password)
             return user
         } catch (error) {

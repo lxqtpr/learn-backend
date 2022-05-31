@@ -65,7 +65,7 @@ export class GoogleAuthService {
         const tokenInfo = await this.oauthClient.getTokenInfo(token);
         const email = tokenInfo.email;
         try {
-            const user = await this.userRepository.findOne({email});
+            const user = await this.userRepository.findOne({ where: { email } });
             return this.handleRegisteredUser(user);
         } catch (error) {
             if (error.status !== 404) {throw new error;}return this.registerUser(email);

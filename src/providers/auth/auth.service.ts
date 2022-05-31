@@ -21,7 +21,7 @@ export class AuthService {
     ) {}
 
     async registration(dto: CreateUserDto, req: Request) {
-        const exitedUser = await this.userRepository.findOne({ email: dto.email })
+        const exitedUser = await this.userRepository.findOne({ where: { email: dto.email } })
         if (exitedUser) throw new BadRequestException('User with this email already exist')
         const hashedPassword = await hash(dto.password, 10)
 
@@ -30,22 +30,15 @@ export class AuthService {
             password: hashedPassword,
         })
         await this.userRepository.save(newUser)
-
-        const accessTokenCookie = await this.jwtAuthService.getCookieWithJwtAccessToken(newUser.id)
-        const { refreshCookie, refreshToken } = await this.jwtAuthService.getCookieWithJwtRefreshToken(newUser.id)
+        const refreshToken = await  this.jwtAuthService.setTokensWithCookie(newUser.id, req)
         newUser.refreshToken = await hash(refreshToken, 10)
-
         this.emailService.sendVerificationLink(dto.email)
-        req.res.setHeader('Set-Cookie', [accessTokenCookie, refreshCookie])
-
         return await this.userRepository.save(newUser)
     }
 
     async login(user: User, req: Request) {
-        const accessTokenCookie = await this.jwtAuthService.getCookieWithJwtAccessToken(user.id)
-        const { refreshCookie, refreshToken } = await this.jwtAuthService.getCookieWithJwtRefreshToken(user.id)
+        const refreshToken = await  this.jwtAuthService.setTokensWithCookie(user.id, req)
         await this.userService.setCurrentRefreshToken(refreshToken, user.id)
-        req.res.setHeader('Set-Cookie', [accessTokenCookie, refreshCookie])
         if (user.isTwoFactorAuthEnabled) {
             return;
         }
@@ -62,7 +55,7 @@ export class AuthService {
 
     public async confirmEmail(token: string, res: Response) {
         const email = await this.jwtAuthService.decodeConfirmationToken(token)
-        const user = await this.userRepository.findOne({ email })
+        const user = await this.userRepository.findOne({ where: { email } })
         if (user?.isEmailConfirmed) {
             throw new BadRequestException('Email already confirmed')
         }
@@ -75,7 +68,7 @@ export class AuthService {
     }
 
     public async resendConfirmationLink(id: number) {
-        const user = await this.userRepository.findOne({ id })
+        const user = await this.userRepository.findOne({ where: { id } } )
         if (user?.isEmailConfirmed) {
             throw new BadRequestException('Email already confirmed')
         }

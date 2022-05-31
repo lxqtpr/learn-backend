@@ -1,10 +1,11 @@
 import { Repository } from 'typeorm'
 import User from '../../../models/user/entity/user.entity'
 import * as request from 'supertest'
-import { BadRequestException, INestApplication } from '@nestjs/common'
+import { INestApplication } from '@nestjs/common'
 import { AuthModule } from '../../../providers/auth/auth.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Test } from '@nestjs/testing'
+import * as assert from 'assert'
 
 describe('Auth', () => {
     let app: INestApplication;
@@ -35,13 +36,20 @@ describe('Auth', () => {
         await app.close();
     });
 
-    describe('POST /registration', function() {
-        it('registration"', (done) => {
-            request(app.getHttpServer())
+    describe('POST /registration', () => {
+        it('registration"',  (done) => {
+             request(app.getHttpServer())
                 .post('/auth/registration')
                 .send({email: 'lxqtpr@gmail.com', password: 'dswqd321'})
                 .set('Accept', 'application/json')
-                .expect((res) => {expect(res.error).toEqual(new BadRequestException('User with this email already exist'))})
+                .expect(400)
+                .then((res) => {
+                    assert(res.status === 400)
+                    // @ts-ignore
+                    expect(JSON.parse(res.error.text).message).toBe(`User with this email already exist`)
+                    done()
+                })
+                .catch((e) => done(e))
         });
     });
 })
